@@ -79,8 +79,7 @@ def check_reminders():
         time.sleep(INTERVAL)
 
 def generate_handler(update: Update, context: CallbackContext):
-    print(update.message.from)
-    url = create_deep_linked_url(update.message.chat.username, update.message.from.username, group=True)
+    url = create_deep_linked_url(update.message.chat.username, update.message.from_user, group=True)
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 
 if __name__ == '__main__':

@@ -34,6 +34,8 @@ else:
 
 
 def start_handler(update, context):
+    print(context)
+    logger.info(context)
     update.message.reply_text("Hello, master!", reply_markup=add_reminder_button())
 
 

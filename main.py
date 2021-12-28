@@ -35,8 +35,6 @@ else:
 
 
 def start_handler(update, context):
-    print(context.user_data["message_text"], context.user_data, update.message)
-    logger.info(context)
     update.message.reply_text("Hello, master!", reply_markup=add_reminder_button())
 
 
@@ -79,6 +77,7 @@ def check_reminders():
         time.sleep(INTERVAL)
 
 def generate_handler(update: Update, context: CallbackContext):
+    print(update.user, update.message, update.message.from_user)
     url = create_deep_linked_url(update.message.chat.username, update.message.from_user, group=True)
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 

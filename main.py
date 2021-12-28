@@ -34,7 +34,7 @@ else:
 
 
 def start_handler(update, context):
-    update.message.reply_text("Hello, creator!", reply_markup=add_reminder_button())
+    update.message.reply_text("Hello, master!", reply_markup=add_reminder_button())
 
 
 def add_reminder_button():

@@ -26,7 +26,7 @@ if MODE == "dev":
         updater.start_polling()
 elif MODE == "prod":
     def run():
-        logger.info("Start in PROD mode")
+        logger.info("Start in PROD mode", updater)
         updater.start_webhook(listen="0.0.0.0", port=int(os.environ.get("PORT", "8443")), url_path=TOKEN,
                               webhook_url="https://{}.herokuapp.com/{}".format(os.environ.get("APP_NAME"), TOKEN))
 else:
@@ -76,8 +76,8 @@ def check_reminders():
                 updater.bot.send_message(reminder_data.chat_id, reminder_data.message)
         time.sleep(INTERVAL)
 
-def generate_handler(update: Update, context: CallbackContext, entity: MessageEntity):
-    logger.info(update, update.message, update.message.from_user, entity)
+def generate_handler(update: Update, context: CallbackContext,):
+    logger.info(update, update.message, update.message.from_user)
     url = create_deep_linked_url(update.message.chat.username, group=True)
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 

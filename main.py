@@ -1,6 +1,7 @@
 from telegram.ext import (Updater, CommandHandler, ConversationHandler, MessageHandler,
                           Filters, CallbackContext)
 from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram.utils.helpers import create_deep_linked_url
 from data_source import DataSource
 import os
 import threading
@@ -34,7 +35,7 @@ else:
 
 
 def start_handler(update, context):
-    print(context)
+    print(context.user_data["message_text"], context.user_data, update.message)
     logger.info(context)
     update.message.reply_text("Hello, master!", reply_markup=add_reminder_button())
 
@@ -77,10 +78,14 @@ def check_reminders():
                 updater.bot.send_message(reminder_data.chat_id, reminder_data.message)
         time.sleep(INTERVAL)
 
+def generate_handler(update: Update, context: CallbackContext):
+    url = create_deep_linked_url(context.bot.get_me().username, update.message.chat.username)
+    update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 
 if __name__ == '__main__':
     updater = Updater(TOKEN, use_context=True)
     updater.dispatcher.add_handler(CommandHandler("start", start_handler))
+    updater.dispatcher.add_handler(CommandHandler("generate", generate_handler))
     conv_handler = ConversationHandler(
         entry_points=[MessageHandler(Filters.regex(ADD_REMINDER_TEXT), add_reminder_handler)],
         states={

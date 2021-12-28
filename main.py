@@ -1,6 +1,6 @@
 from telegram.ext import (Updater, CommandHandler, ConversationHandler, MessageHandler,
                           Filters, CallbackContext)
-from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram import KeyboardButton, ReplyKeyboardMarkup, Update, MessageEntity
 from telegram.utils.helpers import create_deep_linked_url
 from data_source import DataSource
 import os
@@ -76,9 +76,9 @@ def check_reminders():
                 updater.bot.send_message(reminder_data.chat_id, reminder_data.message)
         time.sleep(INTERVAL)
 
-def generate_handler(update: Update, context: CallbackContext):
-    print(update.user, update.message, update.message.from_user)
-    url = create_deep_linked_url(update.message.chat.username, update.message.from_user, group=True)
+def generate_handler(update: Update, context: CallbackContext, entity: MessageEntity):
+    logger.info(update, update.message, update.message.from_user, entity)
+    url = create_deep_linked_url(update.message.chat.username, group=True)
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 
 if __name__ == '__main__':

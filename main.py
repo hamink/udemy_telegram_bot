@@ -29,6 +29,7 @@ elif MODE == "prod":
         logger.info("Start in PROD mode")
         updater.start_webhook(listen="0.0.0.0", port=int(os.environ.get("PORT", "8443")), url_path=TOKEN,
                               webhook_url="https://{}.herokuapp.com/{}".format(os.environ.get("APP_NAME"), TOKEN))
+        print(updater.bot.get_webhook_info())
 else:
     logger.error("No mode specified!")
     sys.exit(1)
@@ -37,8 +38,8 @@ else:
 def start_handler(update, context):
     bot = context.bot
 
-    param_value = context.args[0]
-    update.message.reply_text('Value is ' + param_value)
+    # param_value = context.args[0]
+    # update.message.reply_text('Value is ' + param_value)
     update.message.reply_text("Hello, master!", reply_markup=add_reminder_button())
 
 
@@ -81,7 +82,6 @@ def check_reminders():
         time.sleep(INTERVAL)
 
 def generate_handler(update: Update, context: CallbackContext):
-    print(update.message.chat.username, update.message.from_user.username)
     url = create_deep_linked_url(update.message.chat.username, update.message.from_user.username)
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 
@@ -100,6 +100,5 @@ if __name__ == '__main__':
     updater.dispatcher.add_handler(conv_handler)
     dataSource.create_tables()
     run()
-    logger.debug(updater.bot.get_webhook_info())
     start_check_reminders_task()
 

@@ -86,8 +86,12 @@ def generate_handler(update: Update, context: CallbackContext):
     update.message.reply_text(text="Share it with your friends: %s.\n Copy the link and share it with them" % url)
 
 def new_member(update: Update, context: CallbackContext):
-    for member in update.message.new_chat_members:
-        updater.bot.send_message(member)
+    print(update.message)
+    if update.message:
+        if update.message.new_chat_members:
+            for member in update.message.new_chat_members:
+                print("test", member)
+                update.bot.send_message(member)
 
 if __name__ == '__main__':
     updater = Updater(TOKEN, use_context=True)
@@ -102,9 +106,7 @@ if __name__ == '__main__':
         fallbacks=[]
     )
     updater.dispatcher.add_handler(conv_handler)
-    if updater.message:
-        if updater.message.new_chat_members:
-            updater.dispatcher.add_handler(MessageHandler(Filters.all, new_member))
+    updater.dispatcher.add_handler(MessageHandler(Filters.all, new_member))
     dataSource.create_tables()
     run()
     start_check_reminders_task()

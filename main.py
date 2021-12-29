@@ -21,6 +21,10 @@ dataSource = DataSource(os.environ.get("DATABASE_URL"))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
 
+CHECK_THIS_OUT = "check-this-out"
+USING_ENTITIES = "using-entities-here"
+SO_COOL = "so-cool"
+
 if MODE == "dev":
     def run():
         logger.info("Start in DEV mode")
@@ -34,10 +38,7 @@ else:
     logger.error("No mode specified!")
     sys.exit(1)
 
-    # Define constants that will allow us to reuse the deep-linking parameters.
-    CHECK_THIS_OUT = "check-this-out"
-    USING_ENTITIES = "using-entities-here"
-    SO_COOL = "so-cool"
+   
 
 def start(update, context):
     """Send a deep-linked URL when the command /start is issued."""

@@ -1,19 +1,17 @@
 import psycopg2
 import logging
-
-from message_data import ReminderData
-
 logger = logging.getLogger()
+INSERT_NEW_USER = """
+                    INSERT INTO user_info(user_id, user_name, balance, referral_number)
+                    VALUES(%s, %s, %s, %s)
+                  """
 
-SELECT_ALL_REMINDERS_STATEMENT = """SELECT * FROM reminders"""
 
-INSERT_REMINDER_STATEMENT = """INSERT INTO reminders(chat_id, message, time) 
-                                    VALUES(%s, %s, %s)
-                                    RETURNING reminder_id, chat_id, message, time, fired"""
+UPDATE_BALANCE = """UPDATE user_info
+                SET balance = balance + 20, referral_number = referral_number + 1
+                WHERE user_name = %s"""
 
-FIRE_REMINDER_STATEMENT = """UPDATE reminders 
-                                SET fired = true 
-                                WHERE reminder_id = %s"""
+
 
 
 class DataSource:
@@ -31,15 +29,13 @@ class DataSource:
     def create_tables(self):
         commands = (
             """
-                CREATE TABLE IF NOT EXISTS reminders (
-                    reminder_id serial PRIMARY KEY,
-                    chat_id INT NOT NULL,
-                    message VARCHAR(300) NOT NULL,
-                    time TIMESTAMP NOT NULL,
-                    fired BOOLEAN NOT NULL DEFAULT FALSE
+                CREATE TABLE IF NOT EXISTS user_info (
+                    user_id serial PRIMARY KEY,
+                    user_name VARCHAR(32) NOT NULL,
+                    balance SMALLINT,
+                    referral_number SMALLINT
                 )
             """,)
-
         conn = None
         try:
             conn = self.get_connection()
@@ -54,47 +50,82 @@ class DataSource:
         finally:
             self.close_connection(conn)
 
-    def get_all_reminders(self):
-        conn = None
-        reminders = list()
-        try:
-            conn = self.get_connection()
-            cur = conn.cursor()
-            cur.execute(SELECT_ALL_REMINDERS_STATEMENT)
-            for row in cur.fetchall():
-                reminders.append(ReminderData(row))
-            cur.close()
-        except (Exception, psycopg2.DatabaseError) as error:
-            logger.error(error)
-            raise error
-        finally:
-            self.close_connection(conn)
-            return reminders
-
-    def create_reminder(self, chat_id, message, time):
+    def check_valid_param(self, user_name, param):
         conn = None
         try:
-            conn = self.get_connection()
-            cur = conn.cursor()
-            cur.execute(INSERT_REMINDER_STATEMENT, (chat_id, message, time))
-            row = cur.fetchone()
-            cur.close()
-            conn.commit()
-            return ReminderData(row)
+            if user_name == param:
+                return False
+            else:
+                conn = self.get_connection()
+                cur = conn.cursor()
+                cur.execute("SELECT user_name FROM user_info WHERE user_name = %s", [param])
+                doc = cur.fetchone()
+                cur.close()
+                conn.commit()
+                return bool(doc)
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise error
         finally:
             self.close_connection(conn)
 
-    def fire_reminder(self, reminder_id):
+    def add_new_user(self, user_id, user_name, balance, referral_number):
         conn = None
         try:
             conn = self.get_connection()
             cur = conn.cursor()
-            cur.execute(FIRE_REMINDER_STATEMENT, (reminder_id,))
+            cur.execute("SELECT user_name FROM user_info WHERE user_name = %s", [user_name])
+            doc = cur.fetchone()
+            if doc == None:
+                cur.execute(INSERT_NEW_USER, [user_id, user_name, balance, referral_number])
             cur.close()
             conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise error
+        finally:
+            self.close_connection(conn)
+
+    def update_balance(self, user_name):
+        conn = None
+        try:
+            conn = self.get_connection()
+            cur = conn.cursor()
+            cur.execute(UPDATE_BALANCE, (user_name,))
+            cur.close()
+            conn.commit()
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise error
+        finally:
+            self.close_connection(conn)
+    
+    def get_balance(self, user_name):
+        conn = None
+        try:
+            conn = self.get_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT balance, referral_number FROM user_info WHERE user_name = %s", [user_name])
+            result = cur.fetchone()
+            cur.close()
+            conn.commit()
+            return result
+        except (Exception, psycopg2.DatabaseError) as error:
+            logger.error(error)
+            raise error
+        finally:
+            self.close_connection(conn)
+
+    def get_ranking(self):
+        conn = None
+        try:
+            conn = self.get_connection()
+            cur = conn.cursor()
+            cur.execute("SELECT user_name FROM user_info ORDER BY referral_number LIMIT 20")
+            result = cur.fetchone()
+            cur.close()
+            conn.commit()
+            return result
         except (Exception, psycopg2.DatabaseError) as error:
             logger.error(error)
             raise error

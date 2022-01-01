@@ -6,13 +6,9 @@ INSERT_NEW_USER = """
                     VALUES(%s, %s, %s, %s)
                   """
 
-
 UPDATE_BALANCE = """UPDATE user_info
                 SET balance = balance + 20, referral_number = referral_number + 1
                 WHERE user_name = %s"""
-
-
-
 
 class DataSource:
     def __init__(self, database_url):
@@ -121,8 +117,8 @@ class DataSource:
         try:
             conn = self.get_connection()
             cur = conn.cursor()
-            cur.execute("SELECT user_name FROM user_info ORDER BY referral_number LIMIT 20")
-            result = cur.fetchone()
+            cur.execute("SELECT user_name, balance FROM user_info ORDER BY balance DESC LIMIT 20")
+            result = cur.fetchall()
             cur.close()
             conn.commit()
             return result

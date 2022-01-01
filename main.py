@@ -1,6 +1,6 @@
 from telegram.ext import (Updater, CommandHandler, MessageHandler,
                           Filters, CallbackContext, CallbackQueryHandler)
-from telegram import KeyboardButton, ReplyKeyboardMarkup, Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
+from telegram import KeyboardButton, ReplyKeyboardMarkup, Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.utils.helpers import create_deep_linked_url
 from data_source import DataSource
 import os
@@ -28,13 +28,11 @@ elif MODE == "prod":
         logger.info("Start in PROD mode")
         updater.start_webhook(listen="0.0.0.0", port=int(os.environ.get("PORT", "8443")), url_path=TOKEN,
                               webhook_url="https://{}.herokuapp.com/{}".format(os.environ.get("APP_NAME"), TOKEN))
-        print("test", updater.bot.get_webhook_info())
 else:
     logger.error("No mode specified!")
     sys.exit(1)
 
-
-def start_handler(update, context):
+def start_handler(update: Update, context: CallbackContext):
     if not context.args:
         dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 0, 0)
     else:
@@ -43,19 +41,21 @@ def start_handler(update, context):
         if validParam:
             dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 20, 0)
             dataSource.update_balance(param_value)
+        else:
+            dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 0, 0)
+
     update.message.reply_text("Hello, Welcome to the Leedo project! \n\nPlease join our group and click continue \n\n", reply_markup=InlineKeyboardMarkup([
-        [InlineKeyboardButton(text='Join group', url='https://t.me/realtest11')],
-        [InlineKeyboardButton('Continue', callback_data='join_competition')],
+    [InlineKeyboardButton(text='Join group', url='https://t.me/leedo_project')],
+    [InlineKeyboardButton('Continue', callback_data='join_competition')],
     ]))
 
-def join_competition(update, context):
+def join_competition(update: Update, context: CallbackContext):
     try:
-        response = requests.get("https://api.telegram.org/bot%s/getChatMember?chat_id=-1001530425621&user_id=%s" % (TOKEN, update.callback_query.message.from_user.id))
-        print("https://api.telegram.org/bot%s/getChatMember?chat_id=-1001530425621&user_id=%s" % (TOKEN, update.callback_query.message.from_user.id))
+        response = requests.get("https://api.telegram.org/bot%s/getChatMember?chat_id=-1001617803218&user_id=%s" % (TOKEN, update.callback_query.message.from_user.id))
         if response.ok == False:
-            update.callback_query.message.reply_text("Join Leedo group first and click continue")
+            update.callback_query.message.reply_text("Join Leedo group first and click continue - https://t.me/leedo_project")
         else:
-            update.callback_query.message.reply_text("Well done", reply_markup=add_buttons())
+            update.callback_query.message.reply_text("You are now participated to the competition! Check out buttons below", reply_markup=add_buttons())
     except requests.ConnectionError as error:
         print(error)
 
@@ -67,19 +67,18 @@ def add_buttons():
 
 def generate_handler(update: Update, context: CallbackContext):
     url = create_deep_linked_url(context.bot.get_me().username, update.message.chat.username)
-    update.message.reply_text(text="Share it with your friends: %s\n Copy the link and share it with them" % url)
+    update.message.reply_text(text="Share it with your friends: %s\nCopy the link and share it with them" % url)
 
 def check_balance(update: Update, context: CallbackContext):
     current_balance = dataSource.get_balance(update.message.from_user.username)
-    print(current_balance[0])
-    update.message.reply_text("This is your balance: {} \n This is your referral number: {}".format(current_balance[0], current_balance[1]))
+    update.message.reply_text("This is your balance: {} \nThis is your referral number: {}".format(current_balance[0], current_balance[1]))
 
 def check_leaderboard(update: Update, context: CallbackContext):
     ranking = dataSource.get_ranking()
-    print(ranking)
+    update.message.reply_text(text="*rank: id - balance*", parse_mode=ParseMode.MARKDOWN)
     number = 1
     for rank in ranking:
-        update.message.reply_text("{}: {}".format(number, rank))
+        update.message.reply_text("{}: {} - {}".format(number, rank[0], rank[1]))
         number += 1
 
 if __name__ == '__main__':

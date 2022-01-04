@@ -1,6 +1,7 @@
 import psycopg2
 import logging
 logger = logging.getLogger()
+
 INSERT_NEW_USER = """
                     INSERT INTO user_info(user_id, user_name, balance, referral_number)
                     VALUES(%s, %s, %s, %s)

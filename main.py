@@ -32,7 +32,6 @@ else:
     sys.exit(1)
 
 def start_handler(update: Update, context: CallbackContext):
-    print('start handler is working')
     global param
     if not context.args:
         param = 'noParam'

@@ -14,7 +14,6 @@ CHECK_LEADERBOARD = 'Check LEADERBOARD 🏆'
 
 MODE = os.getenv("MODE")
 TOKEN = os.getenv("TOKEN")
-ENTER_MESSAGE, ENTER_TIME = range(2)
 dataSource = DataSource(os.environ.get("DATABASE_URL"))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
@@ -33,18 +32,13 @@ else:
     sys.exit(1)
 
 def start_handler(update: Update, context: CallbackContext):
+    print('start handler is working')
+    global param
     if not context.args:
-        dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 0, 0)
+        param = 'noParam'
     else:
-        param_value = context.args[0]
-        validParam = dataSource.check_valid_param(update.message.from_user.username, param_value)
-        if validParam:
-            dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 20, 0)
-            dataSource.update_balance(param_value)
-        else:
-            dataSource.add_new_user(update.message.from_user.id, update.message.from_user.username, 0, 0)
-
-    update.message.reply_text("Hello, Welcome to the Leedo project! \n\nPlease join our group and click continue \n\n", reply_markup=InlineKeyboardMarkup([
+        param = context.args
+    update.message.reply_text("Hello, Welcome to the Leedo project! \n\nPlease join our group and click continue: \n\n", reply_markup=InlineKeyboardMarkup([
     [InlineKeyboardButton(text='Join group', url='https://t.me/leedo_project')],
     [InlineKeyboardButton('Continue', callback_data='join_competition')],
     ]))
@@ -55,7 +49,16 @@ def join_competition(update: Update, context: CallbackContext):
         if response.ok == False:
             update.callback_query.message.reply_text("Join Leedo group first and click continue - https://t.me/leedo_project")
         else:
-            update.callback_query.message.reply_text("You are now participated to the competition! Check out buttons below", reply_markup=add_buttons())
+            update.callback_query.message.reply_text("You are now participated to the competition! Check out buttons below 👇", reply_markup=add_buttons())
+            if param == 'noParam':
+                dataSource.add_new_user(update.callback_query.message.chat.id, update.callback_query.message.chat.username, 0, 0)
+            else:
+                validParam = dataSource.check_valid_param(update.callback_query.message.chat.username, param[0])
+                if validParam:
+                    dataSource.add_new_user(update.callback_query.message.chat.id, update.callback_query.message.chat.username, 10, 0)
+                    dataSource.update_balance(param[0])
+                else:
+                    dataSource.add_new_user(update.callback_query.message.chat.id, update.callback_query.message.chat.username, 0, 0)
     except requests.ConnectionError as error:
         print(error)
 

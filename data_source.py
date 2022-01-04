@@ -7,7 +7,7 @@ INSERT_NEW_USER = """
                   """
 
 UPDATE_BALANCE = """UPDATE user_info
-                SET balance = balance + 20, referral_number = referral_number + 1
+                SET balance = balance + 10, referral_number = referral_number + 1
                 WHERE user_name = %s"""
 
 class DataSource:
@@ -26,7 +26,7 @@ class DataSource:
         commands = (
             """
                 CREATE TABLE IF NOT EXISTS user_info (
-                    user_id serial PRIMARY KEY,
+                    user_id BIGINT PRIMARY KEY,
                     user_name VARCHAR(32) NOT NULL,
                     balance SMALLINT,
                     referral_number SMALLINT
@@ -117,7 +117,7 @@ class DataSource:
         try:
             conn = self.get_connection()
             cur = conn.cursor()
-            cur.execute("SELECT user_name, balance FROM user_info ORDER BY balance DESC LIMIT 20")
+            cur.execute("SELECT user_name, balance FROM user_info ORDER BY balance DESC LIMIT 10")
             result = cur.fetchall()
             cur.close()
             conn.commit()
